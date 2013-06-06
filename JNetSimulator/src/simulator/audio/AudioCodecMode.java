@@ -1,4 +1,4 @@
-package simulator;
+package simulator.audio;
 
 public abstract class AudioCodecMode {
 	

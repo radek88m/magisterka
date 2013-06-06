@@ -1,6 +1,10 @@
 package simulator;
 
+import simulator.audio.GSMCodecMode;
+import simulator.dummy.DummyStream;
 import simulator.logger.Logger;
+import simulator.tunnel.TunnelBase;
+import simulator.tunnel.TunnelSettings;
 
 public class Main {
 
@@ -11,21 +15,23 @@ public class Main {
 		
 		new Logger();
 		
-		UDPSocketAdapter adapter = new UDPSocketAdapter(666);
-		adapter.setRemoteSendAddress("localhost", 666);
+		int LOCAL_PORT = 666;
 		
-		DummyStreamProducer prod = new DummyStreamProducer(adapter);
+		int STREAM_PORT_START = 30000;
 		
-		DummyStreamReceiver receiver = new DummyStreamReceiver();
-		receiver.setUDPSocketAdapter(adapter);
+		TunnelSettings settings = new TunnelSettings();
+		TunnelBase tunnel = new TunnelBase(LOCAL_PORT, settings);
 		
-		adapter.openSocket();
-		adapter.startReceive();
+		tunnel.start();
 		
-		prod.setSendCodecMode(new GSMCodecMode());
-		prod.start();
+		DummyStream stream1 = new DummyStream(STREAM_PORT_START, new GSMCodecMode());
+		DummyStream stream2 = new DummyStream(STREAM_PORT_START+1, new GSMCodecMode());
 		
+		stream1.setRemoteDestination("localhost", LOCAL_PORT);
+		stream2.setRemoteDestination("localhost", LOCAL_PORT);
 		
+		stream1.start();
+		stream2.start();
 	}
 
 }

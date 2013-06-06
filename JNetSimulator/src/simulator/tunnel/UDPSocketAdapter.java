@@ -1,11 +1,8 @@
-package simulator;
+package simulator.tunnel;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
-
 
 public class UDPSocketAdapter {
 	
@@ -15,36 +12,22 @@ public class UDPSocketAdapter {
 	
 	private int mLocalPort;
 	
-	private String mRemoteIP;
-	private InetAddress mRemoteInetAddress;
-	private int mRemotePort;
-	
 	private IUDPSocketAdapterListener mSocketListener;
 	
 	private DatagramSocket mUDPSocket;
 	private SocketOperationsThread mOperationsThread;
 	
-	UDPSocketAdapter(int localPort) {
+	public UDPSocketAdapter(int localPort) {
 		mLocalPort = localPort;
-	}
-	
-	public void setRemoteSendAddress(String remoteIP, int remotePort) {
-		mRemoteIP = remoteIP;
-		mRemotePort = remotePort;
-		try {
-			mRemoteInetAddress = InetAddress.getByName(mRemoteIP);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public void setReceiveListener(IUDPSocketAdapterListener listener){
 		mSocketListener = listener;
 	}
 	
-	public boolean sendData(byte[] data) {
+	public boolean sendData(DatagramPacket packet) {
 		if(mOperationsThread != null) {
-			return mOperationsThread.sendData(data, mRemoteInetAddress, mRemotePort);
+			return mOperationsThread.sendData(packet);
 		} else {
 			return false;
 		}
@@ -119,10 +102,9 @@ public class UDPSocketAdapter {
 			isRunning = false;
 		}
 		
-		public boolean sendData(byte[] data, InetAddress remoteInetAddress, int remotePort) {
+		public boolean sendData(DatagramPacket packet) {
 			try {
-				DatagramPacket sendPacket = new DatagramPacket(data, data.length, remoteInetAddress, remotePort);
-				mSocket.send(sendPacket);
+				mSocket.send(packet);
 				return true;
 			} catch (Exception e) {
 				e.printStackTrace();

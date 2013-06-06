@@ -1,8 +1,9 @@
-package simulator;
+package simulator.audio;
+
 
 public class GSMCodecMode extends AudioCodecMode {
 	
-	GSMCodecMode() {		
+	public GSMCodecMode() {		
 		super();
 		mInputBytesPerFrame = 80;
 		mOutputBytesPerFrame = 33;
