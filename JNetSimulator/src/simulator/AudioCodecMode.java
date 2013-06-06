@@ -4,7 +4,7 @@ public abstract class AudioCodecMode {
 	
 	protected int mInputBytesPerFrame;	 // Bytes per frame required on codec input
 	protected int mOutputBytesPerFrame;	 // Bytes per frame from codec output
-	protected int mSamplesPerFrame;		 // Number of audio samples per frame [ms]
+	protected int mTimePerFrame;		 // Number of audio samples per frame [ms]
 	protected int mFramePtime;			 // Packet audio time
 	protected int mFramesPerPacket;	 	 // Number of codec frames per packet
 	protected int mClockRate;  			 // Codec input sample rate [Hz]
@@ -15,7 +15,7 @@ public abstract class AudioCodecMode {
 			int samplesPerFrame, int framePtime, int framesPerPacket, int clockRate) {		
 		mInputBytesPerFrame = inputBytesPerFrame;
 		mOutputBytesPerFrame = outputBytesPerFrame;
-		mSamplesPerFrame = samplesPerFrame;
+		mTimePerFrame = samplesPerFrame;
 		mFramePtime = framePtime;
 		mFramesPerPacket = framesPerPacket;
 		mClockRate = clockRate;		
@@ -30,7 +30,7 @@ public abstract class AudioCodecMode {
 	}
 	
 	public int getSamplesPerFrame() {
-		return mSamplesPerFrame;
+		return mTimePerFrame;
 	}
 	
 	public int getFramePtime() {

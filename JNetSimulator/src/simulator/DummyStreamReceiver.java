@@ -3,6 +3,7 @@ package simulator;
 import java.net.DatagramPacket;
 
 import simulator.UDPSocketAdapter.IUDPSocketAdapterListener;
+import simulator.logger.Logger;
 
 
 public class DummyStreamReceiver {
@@ -12,7 +13,7 @@ public class DummyStreamReceiver {
 		@Override
 		public void onPacketReceived(UDPSocketAdapter socketAdapter,
 				DatagramPacket packet) {
-			System.out.println("Received " + packet.getLength() + " bytes of data");
+			Logger.println("Received " + packet.getLength() + " bytes of data");
 		}
 		
 	}
