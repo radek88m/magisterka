@@ -1,10 +1,10 @@
 package simulator;
 
-import simulator.audio.GSMCodecMode;
-import simulator.dummy.DummyStream;
 import simulator.logger.Logger;
-import simulator.tunnel.TunnelBase;
-import simulator.tunnel.TunnelSettings;
+import simulator.tunnel.mediastream.TunnelBase;
+import simulator.tunnel.mediastream.TunnelSettings;
+import simulator.tunnel.mediastream.audio.GSMCodecMode;
+import simulator.tunnel.mediastream.dummy.DummyStream;
 
 public class Main {
 

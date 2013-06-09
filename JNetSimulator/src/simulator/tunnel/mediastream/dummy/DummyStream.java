@@ -1,13 +1,13 @@
-package simulator.dummy;
+package simulator.tunnel.mediastream.dummy;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import simulator.audio.AudioCodecMode;
 import simulator.logger.Logger;
-import simulator.tunnel.UDPSocketAdapter;
-import simulator.tunnel.UDPSocketAdapter.IUDPSocketAdapterListener;
+import simulator.tunnel.mediastream.audio.AudioCodecMode;
+import simulator.tunnel.network.UDPSocketAdapter;
+import simulator.tunnel.network.UDPSocketAdapter.IUDPSocketAdapterListener;
 
 public class DummyStream implements IUDPSocketAdapterListener {
 

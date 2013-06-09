@@ -1,10 +1,11 @@
-package simulator.tunnel;
+package simulator.tunnel.mediastream;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
-import simulator.tunnel.IOPacketDispatcher.IDispatcherHandler;
+import simulator.tunnel.network.IOPacketDispatcher;
+import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 
 public class TunnelStreamHandler implements IDispatcherHandler {
 	

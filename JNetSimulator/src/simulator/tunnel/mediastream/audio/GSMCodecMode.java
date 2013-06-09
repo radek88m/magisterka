@@ -1,4 +1,4 @@
-package simulator.audio;
+package simulator.tunnel.mediastream.audio;
 
 
 public class GSMCodecMode extends AudioCodecMode {

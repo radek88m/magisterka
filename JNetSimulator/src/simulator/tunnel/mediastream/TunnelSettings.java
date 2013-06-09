@@ -1,4 +1,4 @@
-package simulator.tunnel;
+package simulator.tunnel.mediastream;
 
 public class TunnelSettings {
 	

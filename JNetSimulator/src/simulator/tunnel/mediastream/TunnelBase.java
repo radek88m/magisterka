@@ -1,8 +1,9 @@
-package simulator.tunnel;
+package simulator.tunnel.mediastream;
 
 import java.net.DatagramPacket;
 
-import simulator.tunnel.IOPacketDispatcher.IDispatcherHandler;
+import simulator.tunnel.network.IOPacketDispatcher;
+import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 
 public class TunnelBase implements IDispatcherHandler {
 	
