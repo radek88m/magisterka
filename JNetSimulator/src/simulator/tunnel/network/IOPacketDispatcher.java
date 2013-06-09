@@ -3,6 +3,7 @@ package simulator.tunnel.network;
 import java.net.DatagramPacket;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import simulator.logger.Logger;
 import simulator.tunnel.network.UDPSocketAdapter.IUDPSocketAdapterListener;
 
 public class IOPacketDispatcher {
@@ -22,6 +23,8 @@ public class IOPacketDispatcher {
 	
 	private UDPSocketAdapter mSocketAdapter;
 	private int mLocalPort;
+	
+	private static final boolean ENABLE_TRACE = true;
 	
 	private CopyOnWriteArrayList<IDispatcherHandler> mHandlers;
 		
@@ -56,6 +59,7 @@ public class IOPacketDispatcher {
 	}
 	
 	protected void dispatchPacket(DatagramPacket packet) {
+		logPacket("Received UDP packet from: ", packet);
 		for(IDispatcherHandler handler : mHandlers){
 			if(handler.onHandleIncomingPacket(this, packet))
 				break;
@@ -64,9 +68,15 @@ public class IOPacketDispatcher {
 	
 	public boolean sendPacket(DatagramPacket packet) {
 		if(mSocketAdapter != null) {
+			logPacket("Sending UDP packet to: ",packet);
 			return mSocketAdapter.sendData(packet);
 		} else {
 			return false;
 		}
+	}
+
+	private void logPacket(String logMsg, DatagramPacket packet) {
+		if(ENABLE_TRACE)
+			Logger.println(logMsg + packet.getAddress() + "\n" + new String(packet.getData()));
 	}
 }

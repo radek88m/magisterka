@@ -10,6 +10,8 @@ public class UDPSocketAdapter {
 		void onPacketReceived(UDPSocketAdapter socketAdapter, DatagramPacket packet);
 	}
 	
+	private static final int MAX_INCOMING_PACKET_LEN = 1500;
+	
 	private int mLocalPort;
 	
 	private IUDPSocketAdapterListener mSocketListener;
@@ -87,7 +89,7 @@ public class UDPSocketAdapter {
 		public void run() {
 			super.run();
 			
-			byte[] recvBuffer = new byte[1024];
+			byte[] recvBuffer = new byte[MAX_INCOMING_PACKET_LEN];
 			DatagramPacket receivePacket = 
 					new DatagramPacket(recvBuffer, recvBuffer.length);
 			while(isRunning) {

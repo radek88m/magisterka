@@ -1,10 +1,9 @@
 package simulator;
 
 import simulator.logger.Logger;
-import simulator.tunnel.mediastream.TunnelBase;
-import simulator.tunnel.mediastream.TunnelSettings;
-import simulator.tunnel.mediastream.audio.GSMCodecMode;
-import simulator.tunnel.mediastream.dummy.DummyStream;
+import simulator.tunnel.mediastream.TunnelStreamSettings;
+import simulator.tunnel.signalling.SIPTunnel;
+import simulator.tunnel.signalling.SIPTunnelConfig;
 
 public class Main {
 
@@ -16,22 +15,20 @@ public class Main {
 		new Logger();
 		
 		int LOCAL_PORT = 666;
+		int PORT_RANGE_BEGIN = 20000;
+		int PORT_RANGE_END = 30000;
 		
-		int STREAM_PORT_START = 30000;
+		String SIP_SERVER = "192.168.0.108";
 		
-		TunnelSettings settings = new TunnelSettings();
-		TunnelBase tunnel = new TunnelBase(LOCAL_PORT, settings);
+		SIPTunnelConfig config = new SIPTunnelConfig(SIP_SERVER, 5060, LOCAL_PORT);	
+		config.setStreamPortRange(PORT_RANGE_BEGIN, PORT_RANGE_END);
 		
-		tunnel.start();
+		config.setTunnelStreamSettings(new TunnelStreamSettings());
 		
-		DummyStream stream1 = new DummyStream(STREAM_PORT_START, new GSMCodecMode());
-		DummyStream stream2 = new DummyStream(STREAM_PORT_START+1, new GSMCodecMode());
+		SIPTunnel tunnel = new SIPTunnel(config);
 		
-		stream1.setRemoteDestination("localhost", LOCAL_PORT);
-		stream2.setRemoteDestination("localhost", LOCAL_PORT);
+		tunnel.startTunnel();
 		
-		stream1.start();
-		stream2.start();
 	}
 
 }

@@ -5,16 +5,16 @@ import java.net.DatagramPacket;
 import simulator.tunnel.network.IOPacketDispatcher;
 import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 
-public class TunnelBase implements IDispatcherHandler {
+public class TunnelStream implements IDispatcherHandler {
 	
 	private int mLocalPort;
-	private TunnelSettings mSettings;
+	private TunnelStreamSettings mSettings;
 	private IOPacketDispatcher mIOPacketDispatcher;
 	
 	private TunnelStreamHandler mPartyA;
 	private TunnelStreamHandler mPartyB;
 	
-	public TunnelBase(int port, TunnelSettings settings) {
+	public TunnelStream(int port, TunnelStreamSettings settings) {
 		mLocalPort = port;
 		mSettings = settings;
 	}

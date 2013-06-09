@@ -22,7 +22,7 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 	
 	private boolean hasDestination = false;
 	
-	private TunnelSettings mSettings;
+	private TunnelStreamSettings mSettings;
 	
 	private TunnelStreamWorker mTunnelStreamWorker;
 	
@@ -30,7 +30,7 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 	private Object mLock = new Object();
 	
 	public TunnelStreamHandler(IOPacketDispatcher dispatcher, 
-			DatagramPacket originPacket, TunnelSettings settings) {
+			DatagramPacket originPacket, TunnelStreamSettings settings) {
 		mDispatcher = dispatcher;
 		mOriginPacket = originPacket;
 		mOriginInetAddress = originPacket.getAddress();
