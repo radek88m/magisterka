@@ -1,0 +1,194 @@
+Index: include/pjmedia/mos.h
+===================================================================
+--- include/pjmedia/mos.h	(revision 0)
++++ include/pjmedia/mos.h	(working copy)
+@@ -0,0 +1,4 @@
++float calculate_mos(unsigned short pt,
++					unsigned int rtt,
++					unsigned int jitter,
++					float AverageLossRate);
+Index: include/pjmedia/stream.h
+===================================================================
+--- include/pjmedia/stream.h	(revision 4531)
++++ include/pjmedia/stream.h	(working copy)
+@@ -427,6 +427,12 @@
+ pjmedia_stream_send_rtcp_bye( pjmedia_stream *stream );
+ 
+ /**
++* Calculate MOS param for specified session
++*/
++PJ_DEF(float) 
++pjmedia_rtcp_calculate_mos(pjmedia_stream * stream,int *prev_loss,int *prev_pkt);
++
++/**
+  * @}
+  */
+ 
+Index: src/pjmedia/mos.c
+===================================================================
+--- src/pjmedia/mos.c	(revision 0)
++++ src/pjmedia/mos.c	(working copy)
+@@ -0,0 +1,116 @@
++#include <pjmedia/mos.h>
++#include <pj/types.h>
++#include <pj/log.h>
++
++#define THIS_FILE "mos.c"
++
++struct pjmedia_mos_abc_s
++{
++	pj_str_t codec_name;
++	unsigned short	pt;
++	unsigned short	a;
++	unsigned short	b;
++	unsigned short	c;
++};
++
++typedef struct pjmedia_mos_abc_s pjmedia_mos_abc_t;
++
++static pjmedia_mos_abc_t pjmedia_mos_abc[]=
++{
++	{{"g711a",5},8,0,22,20},
++	{{"g711u",5},0,0,22,20},
++	{{"g729",4},18,11,31,15},
++};
++
++#define RETURN_IFNOK(x) if(x==0x0)return -1;
++
++//Stepping function
++//if x >= 0, H(x) = 1; if x < 0, H(x) = 0;
++float H(float x)
++{
++	return (x>=0?1:0);
++}
++
++//PacketizatioDelay
++//pt 0,8 -> g711 u/a
++//pt 18 -> g729
++unsigned int D(unsigned short pt)
++{
++	
++	return (pt==0||pt==8)?20:25;
++}
++
++float ABC(unsigned short pt,unsigned short mode)
++{
++	pjmedia_mos_abc_t* ptr=0x0;
++	int i=0;
++	
++	for(i=0;i<(sizeof(pjmedia_mos_abc)/sizeof(pjmedia_mos_abc_t));i++)
++	{
++		if(pjmedia_mos_abc[i].pt==pt)
++		{
++			ptr=&pjmedia_mos_abc[i];
++			break;
++		}
++	}
++	if(ptr==0x0)
++	{
++		ptr=&pjmedia_mos_abc[i-1];
++	}
++	if(ptr!=0x0)
++		switch (mode) {
++			default:
++			case 'a':
++				return ptr->a;
++				break;
++			case 'b':
++				return ptr->b;
++				break;
++			case 'c':
++				return ptr->c;
++				break;
++		}
++	else
++		return 0;
++}
++float A(unsigned short pt)
++{
++	return ABC(pt,'a');
++}
++float B(unsigned short pt)
++{
++	return ABC(pt,'b');
++}
++float C(unsigned short pt)
++{
++	return ABC(pt,'c');
++}
++float calculate_mos(unsigned short pt,
++					unsigned int rtt,
++					unsigned int jitter,
++					float AverageLossRate)
++{
++	
++	float d=D(pt)+rtt+jitter;
++	
++	float Id = 0.024*d + 0.11*(d-177.3)*H(d-177.3);
++	
++	float Ie = A(pt)+B(pt)*logf(1+C(pt)*AverageLossRate/100);
++	
++	float A = 5;
++	
++	float R = 93.2 - Id - Ie - A;	
++	
++	PJ_LOG(5, ("calculate_mos", "R = %3.2f = 93.2 -%3.2f -%3.2f -%3.2f",R,Id,Ie,A));
++	
++	float MOS=0;
++	
++	if(0 < R && R < 100) 
++		MOS = 1 + 0.035 * R + 7 * R * (R - 60)*(100 - R)/1000000;
++	else if(R < 0) 
++		MOS =1;
++	else if(R > 100) 
++		MOS = 4.5;
++	
++	return MOS;
++}
+\ No newline at end of file
+Index: src/pjmedia/stream.c
+===================================================================
+--- src/pjmedia/stream.c	(revision 4531)
++++ src/pjmedia/stream.c	(working copy)
+@@ -24,6 +24,7 @@
+ #include <pjmedia/jbuf.h>
+ #include <pjmedia/stream_common.h>
+ #include <pj/array.h>
++#include <pjmedia/mos.h>
+ #include <pj/assert.h>
+ #include <pj/ctype.h>
+ #include <pj/compat/socket.h>
+@@ -35,6 +36,7 @@
+ #include <pj/rand.h>
+ #include <pj/sock_select.h>
+ #include <pj/string.h>	    /* memcpy() */
++#include <pj/types.h>
+ 
+ 
+ #define THIS_FILE			"stream.c"
+@@ -2869,3 +2871,25 @@
+ 
+     return PJ_SUCCESS;
+ }
++
++
++#define RETURN_IFNOK(x) if(x==0x0)return -1;
++
++PJ_DEF(float) 
++pjmedia_rtcp_calculate_mos(pjmedia_stream * stream,int *prev_loss,int *prev_pkt)
++{	
++	RETURN_IFNOK(stream);
++	
++	float loss=stream->rtcp.stat.rx.loss-*prev_loss;
++	float pkt=stream->rtcp.stat.rx.pkt-*prev_pkt;
++	
++	*prev_loss=stream->rtcp.stat.rx.loss;
++	*prev_pkt=stream->rtcp.stat.rx.pkt;
++	
++	float avg_loss_rate=(float)loss*100/pkt;
++	
++	return calculate_mos(stream->si.tx_pt, 
++						(float)stream->rtcp.stat.rtt.last/1000, //us to ms
++						(float)stream->rtcp.stat.rx.jitter.last/1000, //us to ms
++						avg_loss_rate);
++}
