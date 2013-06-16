@@ -77,6 +77,8 @@ public class IOPacketDispatcher {
 
 	private void logPacket(String logMsg, DatagramPacket packet) {
 		if(ENABLE_TRACE)
-			Logger.println(logMsg + packet.getAddress() + "\n" + new String(packet.getData()));
+			Logger.println(logMsg + packet.getAddress() +":" 
+					+ packet.getPort() +"("+packet.getLength()+ " bytes)\n" 
+						+ new String(packet.getData(), 0, packet.getLength()));
 	}
 }

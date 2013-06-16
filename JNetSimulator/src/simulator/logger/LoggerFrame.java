@@ -47,6 +47,7 @@ public class LoggerFrame extends JFrame {
 	
 	public void addLog(String log){
 		mTextArea.append(log);
+		mTextArea.setCaretPosition(mTextArea.getDocument().getLength());
 	}
 	
 	public void clearLogs(){

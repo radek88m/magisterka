@@ -4,16 +4,13 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import simulator.tunnel.mediastream.TunnelStreamSettings;
+import simulator.tunnel.network.UDPSocketInfo;
 
 public class SIPTunnelConfig {
 	
-	private String mSipServerDomain;
-	private InetAddress mSipServerAddress;
-	private int mSipServerPort;
+	private UDPSocketInfo mSipServerSocketInfo;
 	
-	private int mLocalTunnelSipPort;
-	private String mLocalTunnelIP;
-	private InetAddress mLocalTunnelAddress;
+	private UDPSocketInfo mLocalSocketInfo;
 	
 	private int mPortRangeBegin;
 	private int mPortRangeEnd;
@@ -22,15 +19,12 @@ public class SIPTunnelConfig {
 	
 	public SIPTunnelConfig(String sipServerDomain, int sipServerPort, int localSipPort) {
 		try {
-			mSipServerDomain = sipServerDomain;
-			mSipServerPort = sipServerPort;
-			
-			mSipServerAddress = InetAddress.getByName(mSipServerDomain);
+			InetAddress addr = InetAddress.getByName(sipServerDomain);			
+			mSipServerSocketInfo = new UDPSocketInfo(addr, sipServerPort);
 
-			mLocalTunnelAddress = InetAddress.getLocalHost();
-	        mLocalTunnelIP = mLocalTunnelAddress.getHostAddress();
 			
-			mLocalTunnelSipPort = localSipPort;
+			mLocalSocketInfo = new UDPSocketInfo(InetAddress.getLocalHost(), localSipPort);
+			
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
@@ -48,33 +42,29 @@ public class SIPTunnelConfig {
 	public int getStreamPortRangeEnd() {
 		return mPortRangeEnd;
 	}
-
-	public int getLocalTunnelSipPort() {
-		return mLocalTunnelSipPort;
+	
+	public String getLocalTunnelIPAddress() {
+		return mLocalSocketInfo.getAddress().toString();
 	}
 
-	public void setLocalTunnelSipPort(int localSipPort) {
-		this.mLocalTunnelSipPort = localSipPort;
+	public int getLocalTunnelSipPort() {
+		return mLocalSocketInfo.getPort();
 	}
 
 	public int getSipServerPort() {
-		return mSipServerPort;
+		return mSipServerSocketInfo.getPort();
 	}
 
-	public void setSipServerPort(int mSipServerPort) {
-		this.mSipServerPort = mSipServerPort;
-	}
-	
 	public InetAddress getSipServerAddress() {
-		return mSipServerAddress;
+		return mSipServerSocketInfo.getAddress();
 	}
 
 	public String getSipServerDomain() {
-		return mSipServerDomain;
+		return mSipServerSocketInfo.toString();
 	}
-
-	public void setSipServerDomain(String mSipServerIP) {
-		this.mSipServerDomain = mSipServerIP;
+	
+	public UDPSocketInfo getSipServerSocketInfo() {
+		return mSipServerSocketInfo;
 	}
 
 	public TunnelStreamSettings getTunnelStreamSettings() {

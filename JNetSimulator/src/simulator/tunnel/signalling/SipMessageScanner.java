@@ -3,17 +3,60 @@ package simulator.tunnel.signalling;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.UnknownHostException;
 
-public class SipMessageScanner {
+import simulator.tunnel.network.UDPSocketInfo;
+
+public class SIPMessageScanner {
 	
 	private static final String SIP_URI_TAG = "sip:";
-
+	
 	public enum SipHeader {
 		VIA("Via:"),
 		CONTACT("Contact:"),
 		TO("To:"),
 		FROM("From:"),
-		METHOD("");
+		CALL_ID("Call-ID:"),
+		METHOD("SIP/2.0") {
+			@Override
+			String parseHeaderValue(String inputBuff) {
+				try {
+					String line;
+					BufferedReader reader = new BufferedReader(new StringReader(inputBuff));
+					while((line = reader.readLine()) != null) {
+						if(line.contains(mHeaderStr)) {
+							String[] parts = line.split(" ");
+							mValue = parts[0];
+							break;
+						}
+					}
+				} catch (IOException e) {
+					return null;
+				}
+				
+				return mValue;
+			}
+		},
+		STATUS_CODE("SIP/2.0") {
+			@Override
+			String parseHeaderValue(String inputBuff) {
+				try {
+					String line;
+					BufferedReader reader = new BufferedReader(new StringReader(inputBuff));
+					while((line = reader.readLine()) != null) {
+						if(line.contains(mHeaderStr)) {
+							String[] parts = line.split(" ");
+							mValue = parts[1];
+							break;
+						}
+					}
+				} catch (IOException e) {
+					return null;
+				}
+				
+				return mValue;
+			}
+		};
 		
 		String mHeaderStr;
 		String mValue;
@@ -47,12 +90,41 @@ public class SipMessageScanner {
 				return null;
 		}
 	}	
+
+	public enum SipMethod {
+		REGISTER("REGISTER"),
+		SUBSCRIBE("SUBSCRIBE"),
+		INVITE("INVITE"),
+		UPDATE("UPDATE"),
+		ACK("UPDATE"),
+		BYE("UPDATE"),
+		CANCEL("UPDATE"),
+		OPTIONS("UPDATE"),
+		PRACK("UPDATE"),
+		NOTIFY("UPDATE"),
+		PUBLISH("UPDATE"),
+		INFO("UPDATE"),
+		REFER("UPDATE"),
+		MESSAGE("MESSAGE");
+		
+		String mMethodStr;
+		
+		SipMethod(String methodStr) {
+			mMethodStr = methodStr;
+		}
+		
+		boolean isMethod(String sipMessage) {
+			SipHeader header = SipHeader.METHOD;
+			String value = header.parseHeaderValue(sipMessage);
+			return value.contains(mMethodStr);
+		}
+	}	
 	
 	String mInputBuffer;
 	
-	public SipMessageScanner(String msgBuff) {
+	public SIPMessageScanner(String msgBuff) {
 		mInputBuffer = msgBuff;
-	}	
+	}
 	
 	public boolean isValid() {
 		return mInputBuffer.contains("SIP/2.0");		
@@ -66,8 +138,7 @@ public class SipMessageScanner {
 		return header.replaceHeaderValue(mInputBuffer, newValue) != null ? true : false;
 	}
 
-	public String getSipUser() {
-		SipHeader header = SipHeader.CONTACT;
+	public String getUserFromHeader(SipHeader header) {
 		String value = header.parseHeaderValue(mInputBuffer);
 		if(value != null) {
 			int idx = value.indexOf(SIP_URI_TAG);
@@ -76,5 +147,28 @@ public class SipMessageScanner {
 			return user;
 		}
 		return null;
+	}
+	
+	public boolean isMethod(SipMethod method) {
+		return method.isMethod(mInputBuffer);
+	}
+	
+	public boolean isSipRequest() {
+		SipHeader header = SipHeader.METHOD;
+		if(header.parseHeaderValue(mInputBuffer) == null) 
+			return false;
+		else 
+			return true;
+	}
+
+	public UDPSocketInfo getDestAddressFromVia() throws Exception {
+		SipHeader header = SipHeader.VIA;
+		String val = header.parseHeaderValue(mInputBuffer);
+		val = val.substring(val.indexOf(" "));
+		val = val.substring(0, val.indexOf(";")).trim();
+		
+		String[] parts = val.split(":");
+		UDPSocketInfo info = new UDPSocketInfo(parts[0], Integer.parseInt(parts[1]));
+		return info;
 	}
 }

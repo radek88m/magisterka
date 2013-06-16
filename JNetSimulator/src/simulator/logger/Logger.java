@@ -1,5 +1,8 @@
 package simulator.logger;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -21,7 +24,7 @@ public final class Logger {
 		sExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				sLoggerFrame.addLog(log+"\n");				
+				sLoggerFrame.addLog(formatLog(log));				
 			}
 		});
 	}
@@ -30,7 +33,7 @@ public final class Logger {
 		sExecutor.execute(new Runnable() {			
 			@Override
 			public void run() {
-				sLoggerFrame.addLog(ob.toString()+"\n");
+				sLoggerFrame.addLog(formatLog(ob.toString()));
 			}
 		});
 	}
@@ -39,12 +42,20 @@ public final class Logger {
 		sExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				sLoggerFrame.addLog(e.toString()+"\n");
+				sLoggerFrame.addLog(formatLog(e.toString()));
 				StackTraceElement[] stackTrace = e.getStackTrace();
 				for(StackTraceElement elem : stackTrace){
 					sLoggerFrame.addLog("\t"+elem.toString()+"\n");
 				}				
 			}
 		});
+	}
+	
+	private static String formatLog(String log) {
+		Date date = new Date();
+		DateFormat formatter = new SimpleDateFormat("HH:mm:ss.SSS");
+		String dateFormatted = formatter.format(date);
+		
+		return "["+dateFormatted + "] " + log +"\n";
 	}
 }
