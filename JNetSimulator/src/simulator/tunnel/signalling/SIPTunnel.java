@@ -4,6 +4,8 @@ import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.omg.CORBA.SystemException;
+
 import simulator.logger.Logger;
 import simulator.tunnel.mediastream.TunnelStreamManager;
 import simulator.tunnel.network.IOPacketDispatcher;
@@ -72,7 +74,15 @@ public class SIPTunnel implements IDispatcherHandler{
 			if(handler.onIncomingPacket(this, msgBuff, packet)) {
 				return true;
 			}
-		}
+		}		
+
+//		long time = System.currentTimeMillis();
+//		// Delete unused handlers
+//		for(ISIPIncomingMessageHandler handler : mSipDialogHandlers) {
+//			if((time - handler.timeSinceLastHandledMessage()) > 60000) {
+//				mSipDialogHandlers.remove(handler);
+//			}
+//		}
 		
 		// Incoming packet not handled by any module, we have to create new handler
 		SIPDialogHandler handler = new SIPDialogHandler(this, mConfig);

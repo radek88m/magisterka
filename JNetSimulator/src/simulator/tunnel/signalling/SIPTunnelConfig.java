@@ -44,7 +44,7 @@ public class SIPTunnelConfig {
 	}
 	
 	public String getLocalTunnelIPAddress() {
-		return mLocalSocketInfo.getAddress().toString();
+		return mLocalSocketInfo.getAddress().getHostAddress();
 	}
 
 	public int getLocalTunnelSipPort() {

@@ -1,6 +1,8 @@
 package simulator.tunnel.signalling;
 
+import java.math.BigInteger;
 import java.net.DatagramPacket;
+import java.security.SecureRandom;
 
 import simulator.tunnel.mediastream.TunnelStreamManager;
 import simulator.tunnel.network.UDPSocketInfo;
@@ -8,11 +10,15 @@ import simulator.tunnel.signalling.SIPMessageScanner.SipHeader;
 import simulator.tunnel.signalling.SIPMessageScanner.SipMethod;
 
 public class SIPDialogHandler implements ISIPIncomingMessageHandler {
+	
+	private static final int BRANCH_ID_LEN = 130;
 
 	private SIPTunnel mTunnel;
 	private SIPTunnelConfig mConfig;
 		
 	private String mDialogCallID;
+	
+	private String mUniqueBranchID;
 	
 	private long mLastMessageTime;
 	
@@ -25,6 +31,11 @@ public class SIPDialogHandler implements ISIPIncomingMessageHandler {
 		mConfig = config;
 	}
 	
+	private String generateUniqueString(int len) {
+		SecureRandom random = new SecureRandom();
+		return new BigInteger(len, random).toString(32);
+	}
+	
 	public boolean handleOriginPacket(String msgBuff,
 			DatagramPacket packet) {
 		
@@ -32,20 +43,22 @@ public class SIPDialogHandler implements ISIPIncomingMessageHandler {
 		
 		SIPMessageScanner scanner = new SIPMessageScanner(msgBuff);
 		
+		mDialogCallID = scanner.getHeaderValue(SipHeader.CALL_ID);		
+		
+		mUniqueBranchID = generateUniqueString(BRANCH_ID_LEN);
+		
 		if(mConfig.getSipServerSocketInfo().equals(info)) {
 			// Dialog started by sip server
-			sendToUserDestination(scanner, msgBuff, packet);
 			isStartedBySipServer = true;
+			sendToUserDestination(scanner, packet);
 		} else {
+			isStartedBySipServer = false;
 			String sipUser = scanner.getUserFromHeader(SipHeader.CONTACT);
 			if(scanner.isSipRequest()) {
 				mTunnel.getUsersMap().putSipUser(sipUser, info);
 			}
-			sendToSipServer(msgBuff, packet);
-			isStartedBySipServer = false;
-		}
-		
-		mDialogCallID = scanner.getHeaderValue(SipHeader.CALL_ID);		
+			sendToSipServer(scanner, packet);
+		}		
 		
 		// Check if we have INVITE
 		if(scanner.isMethod(SipMethod.INVITE)) {
@@ -59,32 +72,46 @@ public class SIPDialogHandler implements ISIPIncomingMessageHandler {
 		return true;
 	}
 	
-	private void sendToUserDestination(SIPMessageScanner scanner, String msgBuff,
-			DatagramPacket packet) {
-		if(mInviteHandler != null) mInviteHandler.handleMessage(mDialogCallID, packet);
+	private void sendToUserDestination(SIPMessageScanner scanner, DatagramPacket packet) {
+		//if(mInviteHandler != null) mInviteHandler.handleMessage(mDialogCallID, packet);
+		
 		String user = scanner.getUserFromHeader(SipHeader.TO);		
+				
 		UDPSocketInfo userDest = mTunnel.getUsersMap().getSocketInfoForUser(user);
+		
 		if(userDest == null) return;
-		sendToDestination(userDest, msgBuff, packet);
+		
+		sendToDestination(scanner, userDest, packet);
 	}
 
 	
-	private void sendToSipServer(String msgBuff, DatagramPacket inputPacket) {
+	private void sendToSipServer(SIPMessageScanner scanner, DatagramPacket inputPacket) {
+		
+//		if(isStartedBySipServer) {
+//			SIPMessageScanner scanner = new SIPMessageScanner(msgBuff);
+//			scanner.replaceVia(inputPacket, mConfig.getSipServerDomain(),  mConfig.getSipServerPort());
+//		}
+				
+		byte[] data = scanner.handleViaHeader(inputPacket, mConfig.getLocalTunnelIPAddress(), 
+				mConfig.getLocalTunnelSipPort(), mUniqueBranchID);
+		
 		DatagramPacket outPacket = new DatagramPacket(
-				inputPacket.getData(), 
-				inputPacket.getLength(),
+				data, 
+				data.length,
 				mConfig.getSipServerAddress(), 
 				mConfig.getSipServerPort());
 		
 		mTunnel.sendPacket(outPacket);
 	}
 	
-	private void sendToDestination(UDPSocketInfo destination, 
-			String msgBuff, DatagramPacket inputPacket) {
+	private void sendToDestination(SIPMessageScanner scanner, UDPSocketInfo destination, DatagramPacket inputPacket) {
+		
+		byte[] data = scanner.handleViaHeader(inputPacket, mConfig.getLocalTunnelIPAddress(), 
+				mConfig.getLocalTunnelSipPort(), mUniqueBranchID);
 		
 		DatagramPacket outPacket = new DatagramPacket(
-				inputPacket.getData(), 
-				inputPacket.getLength(),
+				data, 
+				data.length,
 				destination.getAddress(), 
 				destination.getPort());
 		
@@ -102,15 +129,15 @@ public class SIPDialogHandler implements ISIPIncomingMessageHandler {
 		if(mConfig.getSipServerSocketInfo().equals(info)) {
 			try {
 				if(isStartedBySipServer) {
-					sendToUserDestination(scanner, msgBuff, inputPacket);
+					sendToUserDestination(scanner, inputPacket);
 				} else {
-					UDPSocketInfo addressFromVia = scanner.getDestAddressFromVia();
-					sendToDestination(addressFromVia, msgBuff, inputPacket);
+					UDPSocketInfo addressFromVia = scanner.getDestAddressFromVia(mUniqueBranchID);
+					sendToDestination(scanner, addressFromVia, inputPacket);
 				}
 			} catch (Exception e) {
 			}
 		} else {
-			sendToSipServer(msgBuff, inputPacket);
+			sendToSipServer(scanner, inputPacket);
 		}
 				
 		mLastMessageTime = System.currentTimeMillis();
