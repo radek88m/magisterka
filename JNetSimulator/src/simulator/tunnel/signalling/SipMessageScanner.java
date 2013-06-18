@@ -218,18 +218,17 @@ public class SIPMessageScanner {
 		return inStr.substring(0,pos) + str + inStr.substring(pos);
 	}
 	
-	public byte[] handleViaHeader(DatagramPacket packet,
-			String localTunnelIPAddress, int localTunnelSipPort,
+	public String handleViaHeader(String localTunnelIPAddress, int localTunnelSipPort,
 			String mUniqueBranchID) {
 		if(mInputBuffer.contains(mUniqueBranchID)) {
-			return removeViaHeader(packet, mUniqueBranchID);
+			return removeViaHeader(mUniqueBranchID);
 		} else {
-			return addViaHeader(packet, localTunnelIPAddress,
+			return addViaHeader(localTunnelIPAddress,
 					localTunnelSipPort, mUniqueBranchID);
 		}
 	}
 
-	private byte[] removeViaHeader(DatagramPacket packet, String mUniqueBranchID) {
+	private String removeViaHeader(String mUniqueBranchID) {
 		try {
 			
 			int idx = mInputBuffer.indexOf(VIA_HEADER_TAG);
@@ -237,22 +236,18 @@ public class SIPMessageScanner {
 			
 			mInputBuffer = mInputBuffer.substring(0, idx) + mInputBuffer.substring(lastViaIdx);
 			
-			byte[] bytes = mInputBuffer.getBytes();
-			return bytes;
-		} catch (Exception e) {
-			return "".getBytes();
-		}
+		} catch (Exception e) {}
+		return mInputBuffer;
 	}
 
-	public void addViaHeader(DatagramPacket packet, UDPSocketInfo addrInfo, 
+	public void addViaHeader(UDPSocketInfo addrInfo, 
 			String mUniqueBranchID) {
 
-		addViaHeader(packet, addrInfo.getAddress().toString(),
+		addViaHeader(addrInfo.getAddress().toString(),
 				addrInfo.getPort(), mUniqueBranchID);
 	}
 
-	public byte[] addViaHeader(DatagramPacket packet,
-			String localTunnelIPAddress, int localTunnelSipPort,
+	public String addViaHeader(String localTunnelIPAddress, int localTunnelSipPort,
 			String mUniqueBranchID) {
 		try {
 			String replaceStr = localTunnelIPAddress+":"+localTunnelSipPort;
@@ -261,25 +256,18 @@ public class SIPMessageScanner {
 
 			int idx = mInputBuffer.indexOf(NEW_LINE_TAG) + NEW_LINE_TAG.length();
 			mInputBuffer = putStringAt(mInputBuffer, idx, newVia);
-
-			byte[] bytes = mInputBuffer.getBytes();
-			return bytes;
 		} catch (Exception e) {
-			return "".getBytes();
 		}
+		return mInputBuffer;
 	}
 
-	public byte[] replaceRouteHeader(DatagramPacket packet,
+	public String replaceRouteHeader(DatagramPacket packet,
 			String localTunnelIPAddress, int localTunnelSipPort) {
 		
 		try {
 			mInputBuffer = mInputBuffer.replace(ROUTE_HEADER_TAG, RECORD_ROUTE_HEADER_TAG);
-
-			byte[] bytes = mInputBuffer.getBytes();
-			return bytes;
 		} catch (Exception e) {
-			return "".getBytes();
 		}
-		
+		return mInputBuffer;
 	}
 }

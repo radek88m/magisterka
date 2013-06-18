@@ -43,6 +43,10 @@ public class SIPTunnelConfig {
 		return mPortRangeEnd;
 	}
 	
+	public InetAddress getLocalTunnelInetAddress() {
+		return mLocalSocketInfo.getAddress();
+	}
+	
 	public String getLocalTunnelIPAddress() {
 		return mLocalSocketInfo.getAddress().getHostAddress();
 	}

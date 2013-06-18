@@ -31,7 +31,7 @@ public class SIPTunnel implements IDispatcherHandler{
 		mSipDialogHandlers = new ArrayList<ISIPIncomingMessageHandler>();
 		mUsersMap = new SIPUsersMap();
 		
-		mStreamManager = new TunnelStreamManager(mConfig.getTunnelStreamSettings());
+		mStreamManager = new TunnelStreamManager(mConfig);
 	}
 		
 	public boolean startTunnel() {

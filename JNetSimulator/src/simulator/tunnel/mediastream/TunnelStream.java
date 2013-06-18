@@ -14,6 +14,8 @@ public class TunnelStream implements IDispatcherHandler {
 	private TunnelStreamHandler mPartyA;
 	private TunnelStreamHandler mPartyB;
 	
+	private boolean isRunning;
+	
 	public TunnelStream(int port, TunnelStreamSettings settings) {
 		mLocalPort = port;
 		mSettings = settings;
@@ -24,10 +26,16 @@ public class TunnelStream implements IDispatcherHandler {
 		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort);
 		mIOPacketDispatcher.registerHandler(this);
 		mIOPacketDispatcher.start();
+		
+		isRunning = true;
+		
 		return true;
 	}
 	
 	public boolean stop() {
+		
+		isRunning = false;
+		
 		if(mPartyA != null) {
 			mPartyA.stopProcessing();
 			mPartyA = null;
@@ -40,6 +48,10 @@ public class TunnelStream implements IDispatcherHandler {
 		mIOPacketDispatcher.stop();
 		mIOPacketDispatcher = null;
 		return true;
+	}
+	
+	public boolean isRunning() {
+		return isRunning;
 	}
 
 
@@ -65,6 +77,11 @@ public class TunnelStream implements IDispatcherHandler {
 		} else {
 			return false;
 		}
+	}
+
+
+	public int getPort() {
+		return mLocalPort;
 	}
 
 }

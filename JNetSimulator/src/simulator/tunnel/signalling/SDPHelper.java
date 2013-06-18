@@ -67,9 +67,18 @@ public class SDPHelper {
 		return Integer.parseInt(parts[1]);
 	}
 
-	public void replaceConnectionLine(String localTunnelIPAddress) {
-		mSipMessage.replace(getConnectionIP(), localTunnelIPAddress);
-		return;
+	public String replaceConnectionLine(String localTunnelIPAddress) {
+		mSipMessage = mSipMessage.replace(getConnectionIP(), localTunnelIPAddress);
+		return mSipMessage;
+	}
+	
+	public String replaceMediaPort(int port) {
+		SDPAttribute attr  =  SDPAttribute.MEDIA;		
+		String val = attr.parseAttrValue(mSipMessage);
+		
+		String replaceStr = val.replace(""+getMediaPort(), ""+port);
+
+		return mSipMessage.replace(val, replaceStr);
 	}
 	
 }
