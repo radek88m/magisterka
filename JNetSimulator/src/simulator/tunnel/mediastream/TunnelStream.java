@@ -61,22 +61,29 @@ public class TunnelStream implements IDispatcherHandler {
 		
 		if(mPartyA == null) {
 			mPartyA = new TunnelStreamHandler(mIOPacketDispatcher, packet, mSettings);
-			mPartyA.startProcessing();
 			return true;
-		} else if (mPartyB == null) {
+		} 
+		if (mPartyB == null) {
+			
+			if(mPartyA.isOriginPacket(packet)) {
+				return true;
+			}
+			
 			mPartyB = new TunnelStreamHandler(mIOPacketDispatcher, packet, mSettings);
-			mPartyB.startProcessing();
 			
 			// Spiecie ze soba dwoch strumieni
-			mPartyB.accuireDestination(mPartyA.getOriginPacket());
-			mPartyA.accuireDestination(mPartyB.getOriginPacket());
+			mPartyB.acquireDestination(mPartyA.getOriginPacket());
+			mPartyA.acquireDestination(mPartyB.getOriginPacket());
+			
+			mPartyA.startProcessing();
+			mPartyB.startProcessing();
 			
 			// Mamy obie strony rozmowy, mozemy przestac sluchac na porcie
 			mIOPacketDispatcher.unregisterHandler(this);
 			return true;
-		} else {
-			return false;
-		}
+		} 
+		
+		return false;
 	}
 
 

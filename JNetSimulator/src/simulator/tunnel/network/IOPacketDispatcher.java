@@ -24,7 +24,7 @@ public class IOPacketDispatcher {
 	private UDPSocketAdapter mSocketAdapter;
 	private int mLocalPort;
 	
-	private static final boolean ENABLE_TRACE = true;
+	private static final boolean ENABLE_TRACE = false;
 	
 	private CopyOnWriteArrayList<IDispatcherHandler> mHandlers;
 		

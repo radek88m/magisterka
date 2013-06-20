@@ -8,7 +8,8 @@ public class SDPHelper {
 	
 	public enum SDPAttribute {
 		CONN("c="),
-		MEDIA("m=");
+		MEDIA("m="),
+		RTCP_PARAM("a=rtcp:");
 		
 		String mAttrStr;
 		String mValue;
@@ -49,6 +50,10 @@ public class SDPHelper {
 		mSipMessage = sipMessage;
 	}
 	
+	public boolean hasSDP() {
+		return mSipMessage.contains("application/sdp");
+	}
+	
 	public String getConnectionIP() {
 		SDPAttribute attr  =  SDPAttribute.CONN;		
 		String val = attr.parseAttrValue(mSipMessage);
@@ -66,17 +71,53 @@ public class SDPHelper {
 		
 		return Integer.parseInt(parts[1]);
 	}
+	
+	public int getRTCPMediaPort() {
+		SDPAttribute attr  =  SDPAttribute.RTCP_PARAM;		
+		String val = attr.parseAttrValue(mSipMessage);
+		
+		String[] parts = val.split(" ");
+		
+		return Integer.parseInt(parts[0]);
+	}
+	
+	public String getRTCPAddressIP() {
+		SDPAttribute attr  =  SDPAttribute.RTCP_PARAM;		
+		String val = attr.parseAttrValue(mSipMessage);
+		
+		String[] parts = val.split(" ");
+		
+		return parts[3];
+	}
 
 	public String replaceConnectionLine(String localTunnelIPAddress) {
-		mSipMessage = mSipMessage.replace(getConnectionIP(), localTunnelIPAddress);
-		return mSipMessage;
+		SDPAttribute attr  =  SDPAttribute.CONN;		
+		String val = attr.parseAttrValue(mSipMessage);
+		if(val == null) return mSipMessage;
+		String replaceStr = val.replace(getConnectionIP(), localTunnelIPAddress);
+
+		return mSipMessage.replace(val, replaceStr);
 	}
 	
 	public String replaceMediaPort(int port) {
 		SDPAttribute attr  =  SDPAttribute.MEDIA;		
 		String val = attr.parseAttrValue(mSipMessage);
-		
+		if(val == null) return mSipMessage;
 		String replaceStr = val.replace(""+getMediaPort(), ""+port);
+
+		return mSipMessage.replace(val, replaceStr);
+	}
+	
+	public String replaceRTCPMediaLine(String localTunnelIPAddress,
+			int localMediaPort) {
+		SDPAttribute attr  =  SDPAttribute.RTCP_PARAM;		
+		String val = attr.parseAttrValue(mSipMessage);
+		
+		if(val == null) return mSipMessage;
+		
+		String replaceStr = val.replace(""+getRTCPMediaPort(), ""+localMediaPort);
+		
+		replaceStr = replaceStr.replace(getRTCPAddressIP(), localTunnelIPAddress);
 
 		return mSipMessage.replace(val, replaceStr);
 	}

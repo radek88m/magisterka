@@ -2,6 +2,7 @@ package simulator.tunnel.mediastream;
 
 import java.util.ArrayList;
 
+import simulator.logger.Logger;
 import simulator.tunnel.network.UDPSocketInfo;
 import simulator.tunnel.signalling.SIPTunnelConfig;
 
@@ -9,38 +10,63 @@ public class TunnelStreamManager {
 	
 	private SIPTunnelConfig mConfig;
 	
-	private ArrayList<TunnelStream> mTunnelMediaStreams;
+	private ArrayList<TunnelStreamHolder> mTunnelMediaHolders;
+	
+	private int mStartPort;
 
 	public TunnelStreamManager(SIPTunnelConfig config) {
 		mConfig = config;
-		
-		mTunnelMediaStreams = new ArrayList<TunnelStream>();
+		mStartPort = mConfig.getStreamPortRangeBegin();
+		mTunnelMediaHolders = new ArrayList<TunnelStreamHolder>();
 	}
 	
 	
 	public int onChangedSDPEvent(UDPSocketInfo prev) {
 		
-		TunnelStream stream = getAvailableTunnelStream();
-		int mediaPort;
+		String callLeg = prev.getAddress().toString().substring(1);
 		
-		if(stream == null) {
-			mediaPort = mConfig.getStreamPortRangeBegin();
-			
-			stream = new TunnelStream(mediaPort, 
-					mConfig.getTunnelStreamSettings());
-			
+		TunnelStreamHolder streamHolder;
+		int mediaPort; 
+		
+		if((streamHolder = handlerHasCallLeg(callLeg)) == null) {
+			if((streamHolder = getAvailableTunnelStream(callLeg)) == null) {			
+				streamHolder = new TunnelStreamHolder(mStartPort, mStartPort+1,
+						mConfig.getTunnelStreamSettings());
+				
+				streamHolder.addCallLeg(callLeg);
+				Logger.println("Dodaje stream holdera kurde: call leg:"+callLeg);
+				mTunnelMediaHolders.add(streamHolder);
+				
+				mediaPort = mStartPort;
+				
+				mStartPort += 2;
+				
+			} else {
+				Logger.println("Dodaje drom nogem: call leg:"+callLeg);
+				mediaPort = streamHolder.getRtpPort();
+				streamHolder.addCallLeg(callLeg);
+				streamHolder.startStreams();
+			}
 		} else {
-			mediaPort = stream.getPort();
-			stream.start();
+			Logger.println("Juz stworzony:"+callLeg);
+			mediaPort = streamHolder.getRtpPort();
 		}
 				
 		return mediaPort;
 	}
+	
+	private TunnelStreamHolder handlerHasCallLeg(String legIP) {
+		for(TunnelStreamHolder s:mTunnelMediaHolders){
+			if(s.hasCallLeg(legIP)) {
+				return s;
+			}
+		}
+		return null;
+	}
 
-
-	private TunnelStream getAvailableTunnelStream() {
-		for(TunnelStream s:mTunnelMediaStreams){
-			if(!s.isRunning()) {
+	private TunnelStreamHolder getAvailableTunnelStream(String legIP) {
+		for(TunnelStreamHolder s:mTunnelMediaHolders){
+			if(!s.hasBothLegs()) {
 				return s;
 			}
 		}

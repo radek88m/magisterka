@@ -17,22 +17,35 @@ public class SIPInviteSessionHandler {
 		try { 
 			SDPHelper sdp = new SDPHelper(inputMsg);
 
-			String connIP = sdp.getConnectionIP();
-			int mediaPort = sdp.getMediaPort();
+			if(sdp.hasSDP()) {
 
-			String tunnelIP = mConfig.getLocalTunnelIPAddress();
-			
-
-			if(!tunnelIP.equals(connIP)) {
-				UDPSocketInfo replacedInfo = new UDPSocketInfo(connIP, mediaPort);
-
-				int localMediaPort = mManager.onChangedSDPEvent(replacedInfo);
+				String connIP = sdp.getConnectionIP();
+				int mediaPort = sdp.getMediaPort();
 				
-				String outMsg = sdp.replaceConnectionLine(mConfig.getLocalTunnelIPAddress());
-				outMsg = new SDPHelper(outMsg).replaceMediaPort(localMediaPort);
-				
-				return outMsg;
-			}		
+				if(connIP.equals("192.168.0.100")) {
+					@SuppressWarnings("unused")
+					int i = 0;
+					i++;
+				}
+
+				String tunnelIP = mConfig.getLocalTunnelIPAddress();
+
+				if(!tunnelIP.equals(connIP)) {
+					UDPSocketInfo replacedInfo = new UDPSocketInfo(connIP, mediaPort);
+
+					int localMediaPort = mManager.onChangedSDPEvent(replacedInfo);
+
+					String outMsg = sdp.replaceConnectionLine(mConfig.getLocalTunnelIPAddress());
+					outMsg = new SDPHelper(outMsg).replaceMediaPort(localMediaPort);
+					try { 
+					outMsg = new SDPHelper(outMsg).replaceRTCPMediaLine(mConfig.getLocalTunnelIPAddress(), 
+							localMediaPort+1);
+					} catch (Exception e) {
+						
+					}
+					return outMsg;
+				}		
+			}
 		} catch (Exception e) {
 		}
 
