@@ -87,6 +87,10 @@ public class SIPDialogHandler implements ISIPIncomingMessageHandler {
 		String resultMsg = scanner.handleViaHeader(mConfig.getLocalTunnelIPAddress(), 
 				mConfig.getLocalTunnelSipPort(), mUniqueBranchID);
 		
+		SIPMessageScanner tmpScanner = new SIPMessageScanner(resultMsg);
+		resultMsg = tmpScanner.handleContactHeader(mConfig.getLocalTunnelIPAddress(), 
+				mConfig.getLocalTunnelSipPort());
+		
 		if(mInviteHandler != null) {
 			resultMsg = mInviteHandler.handleMessage(resultMsg, mDialogCallID);
 		}
@@ -106,6 +110,10 @@ public class SIPDialogHandler implements ISIPIncomingMessageHandler {
 		
 		String resultMsg = scanner.handleViaHeader(mConfig.getLocalTunnelIPAddress(), 
 				mConfig.getLocalTunnelSipPort(), mUniqueBranchID);
+		
+		SIPMessageScanner tmpScanner = new SIPMessageScanner(resultMsg);
+		resultMsg = tmpScanner.handleContactHeader(mConfig.getLocalTunnelIPAddress(), 
+				mConfig.getLocalTunnelSipPort());
 		
 		if(mInviteHandler != null) {
 			resultMsg = mInviteHandler.handleMessage(resultMsg, mDialogCallID);

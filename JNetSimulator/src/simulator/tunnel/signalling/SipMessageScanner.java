@@ -10,6 +10,7 @@ import simulator.tunnel.network.UDPSocketInfo;
 public class SIPMessageScanner {
 
 	private static final String SIP_URI_TAG = "sip:";
+	private static final String OUTBOUND_PROXY_TAG = ";ob";
 
 	private static final String NEW_LINE_TAG = "\n";
 
@@ -225,6 +226,26 @@ public class SIPMessageScanner {
 		} else {
 			return addViaHeader(localTunnelIPAddress,
 					localTunnelSipPort, mUniqueBranchID);
+		}
+	}
+	
+	public String handleContactHeader(String localTunnelIPAddress, int localTunnelSipPort) {
+		try {
+			SipHeader header = SipHeader.CONTACT;
+			String val = header.parseHeaderValue(mInputBuffer);
+			String userAddress;
+//			if(val.contains(OUTBOUND_PROXY_TAG)) {
+//				userAddress = val.substring(val.indexOf("@"), 
+//						val.indexOf(OUTBOUND_PROXY_TAG));
+//			} else {
+				userAddress = val.substring(val.indexOf("@")+1, val.indexOf(">"));
+//			}
+			
+			String replaceStr = localTunnelIPAddress+":"+localTunnelSipPort;
+			replaceStr = val.replace(userAddress, replaceStr);
+			return mInputBuffer.replace(val, replaceStr);
+		} catch (Exception e) {
+			return mInputBuffer;
 		}
 	}
 
