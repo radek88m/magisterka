@@ -16,6 +16,10 @@ public class SIPTunnelConfig {
 	private int mPortRangeEnd;
 	
 	private TunnelStreamSettings mSettings;
+
+	private boolean sipMessageLoggingEnable;
+
+	private boolean mediaFlowLoggingEnable;
 	
 	public SIPTunnelConfig(String sipServerDomain, int sipServerPort, int localSipPort) {
 		try {
@@ -77,5 +81,21 @@ public class SIPTunnelConfig {
 
 	public void setTunnelStreamSettings(TunnelStreamSettings mSettings) {
 		this.mSettings = mSettings;
+	}
+
+	public void setTraceSipMessage(boolean enable) {
+		sipMessageLoggingEnable = enable;
+	}
+	
+	public boolean traceSipMessage() {
+		return sipMessageLoggingEnable;
+	}
+	
+	public void setTraceMediaFlow(boolean enable) {
+		mediaFlowLoggingEnable = enable;
+	}
+	
+	public boolean traceMediaFlow() {
+		return mediaFlowLoggingEnable;
 	}
 }

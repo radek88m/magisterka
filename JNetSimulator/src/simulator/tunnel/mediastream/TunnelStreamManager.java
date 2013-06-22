@@ -3,7 +3,6 @@ package simulator.tunnel.mediastream;
 import java.util.ArrayList;
 
 import simulator.gui.logger.Logger;
-import simulator.tunnel.network.UDPSocketInfo;
 import simulator.tunnel.signalling.SIPTunnelConfig;
 
 public class TunnelStreamManager {
@@ -29,12 +28,12 @@ public class TunnelStreamManager {
 		int mediaPort; 
 		
 		if((streamHolder = handlerHasCallLeg(callLeg)) == null) {
-			if((streamHolder = getAvailableTunnelStream(callLeg)) == null) {			
+			if((streamHolder = getAvailableTunnelStream(callLeg)) == null) {	
+				Logger logger = mConfig.traceMediaFlow() ? new Logger() : null;
 				streamHolder = new TunnelStreamHolder(mStartPort, mStartPort+1,
-						mConfig.getTunnelStreamSettings());
+						mConfig.getTunnelStreamSettings(), logger);
 				
 				streamHolder.addCallLeg(callLeg);
-				Logger.println("Dodaje stream holdera kurde: call leg:"+callLeg);
 				mTunnelMediaHolders.add(streamHolder);
 				
 				mediaPort = mStartPort;
@@ -42,13 +41,13 @@ public class TunnelStreamManager {
 				mStartPort += 2;
 				
 			} else {
-				Logger.println("Dodaje drom nogem: call leg:"+callLeg);
+//				Logger.println("Dodaje drom nogem: call leg:"+callLeg);
 				mediaPort = streamHolder.getRtpPort();
 				streamHolder.addCallLeg(callLeg);
 				streamHolder.startStreams();
 			}
 		} else {
-			Logger.println("Juz stworzony:"+callLeg);
+//			Logger.println("Juz stworzony:"+callLeg);
 			mediaPort = streamHolder.getRtpPort();
 		}
 				
@@ -78,7 +77,6 @@ public class TunnelStreamManager {
 		TunnelStreamHolder streamHolder;
 		if((streamHolder = handlerHasCallLeg(diallogCallId)) != null) {
 			streamHolder.stopStreams();
-			mTunnelMediaHolders.remove(streamHolder);
 		}
 		
 	}

@@ -4,7 +4,6 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import simulator.gui.logger.Logger;
 import simulator.tunnel.mediastream.dummy.audio.AudioCodecMode;
 import simulator.tunnel.network.UDPSocketAdapter;
 import simulator.tunnel.network.UDPSocketAdapter.IUDPSocketAdapterListener;
@@ -69,12 +68,9 @@ public class DummyStream implements IUDPSocketAdapterListener {
 	private class ProducerThread extends Thread {
 		
 		private boolean isRunning = true;
-		private Object mLock = new Object();
-		private long timeInterval;
 		private int dataSize;
 				
 		void setup(long interval, int bytes){
-			timeInterval = interval;
 			dataSize = bytes;
 		}
 		
@@ -86,7 +82,7 @@ public class DummyStream implements IUDPSocketAdapterListener {
 					byte[] sendBuff = new byte[dataSize];
 					DatagramPacket packet = new DatagramPacket(sendBuff, sendBuff.length,
 							mDestAddress, mDestPort);
-					Logger.println("Sending "+dataSize+" to "+ mDestIP+":"+mDestPort);
+					System.out.println("Sending "+dataSize+" to "+ mDestIP+":"+mDestPort);
 					mSocketAdapter.sendData(packet);
 					Thread.sleep(2000);//timeInterval);
 				} catch (InterruptedException e) {
@@ -103,7 +99,7 @@ public class DummyStream implements IUDPSocketAdapterListener {
 	@Override
 	public void onPacketReceived(UDPSocketAdapter socketAdapter,
 			DatagramPacket packet) {
-		Logger.println("Received " + packet.getData().length + " bytes from "
+		System.out.println("Received " + packet.getData().length + " bytes from "
 			+packet.getAddress().toString()+":"+packet.getPort());
 	}
 

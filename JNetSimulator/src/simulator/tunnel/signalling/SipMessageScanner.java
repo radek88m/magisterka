@@ -10,7 +10,6 @@ import simulator.tunnel.network.UDPSocketInfo;
 public class SIPMessageScanner {
 
 	private static final String SIP_URI_TAG = "sip:";
-	private static final String OUTBOUND_PROXY_TAG = ";ob";
 
 	private static final String NEW_LINE_TAG = "\n";
 

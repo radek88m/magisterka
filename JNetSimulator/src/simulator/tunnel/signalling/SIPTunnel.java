@@ -11,6 +11,8 @@ import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 
 public class SIPTunnel implements IDispatcherHandler{
 
+	private Logger mLogger;
+	
 	private SIPTunnelConfig mConfig;
 
 	private int mLocalPort;
@@ -24,7 +26,8 @@ public class SIPTunnel implements IDispatcherHandler{
 	
 	private boolean isRunning;
 
-	public SIPTunnel(SIPTunnelConfig config) {
+	public SIPTunnel(SIPTunnelConfig config, Logger logger) {
+		mLogger = logger;
 		mConfig = config;
 		mLocalPort = mConfig.getLocalTunnelSipPort();
 
@@ -33,9 +36,17 @@ public class SIPTunnel implements IDispatcherHandler{
 
 		mStreamManager = new TunnelStreamManager(mConfig);
 	}
-
+	
+	public void reloadConfig(SIPTunnelConfig config) {
+		Logger logger = mConfig.traceSipMessage() ? mLogger : null;
+		if(mIOPacketDispatcher != null) {
+			mIOPacketDispatcher.setLogger(logger);
+		}
+	}
+	
 	public boolean startTunnel() {
-		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort, true);
+		Logger logger = mConfig.traceSipMessage() ? mLogger : null;
+		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort, logger);
 		mIOPacketDispatcher.registerHandler(this);
 		mIOPacketDispatcher.start();
 		isRunning = true;
@@ -82,26 +93,35 @@ public class SIPTunnel implements IDispatcherHandler{
 			}
 		}		
 
-//		// Delete unused handlers
-//		long time = System.currentTimeMillis();
-//		long timeoutTime = 60000; // 60 seconds
-//		for (Iterator<ISIPIncomingMessageHandler> iterator = mSipDialogHandlers.iterator(); iterator.hasNext();) {
-//			ISIPIncomingMessageHandler handler = iterator.next();
-//			if((time - handler.timeSinceLastHandledMessage()) > timeoutTime) {
-//				Logger.println("Deleting dialog handler: " + handler);
-//				mSipDialogHandlers.remove(handler);
-//			}
-//		}
+		// Delete unused handlers
+		long time = System.currentTimeMillis();
+		long timeoutTime = 60000; // 60 seconds
+		for (Iterator<ISIPIncomingMessageHandler> iterator = mSipDialogHandlers.iterator(); iterator.hasNext();) {
+			ISIPIncomingMessageHandler handler = iterator.next();
+			if((time - handler.timeSinceLastHandledMessage()) > timeoutTime) {
+				logMessage("Deleting dialog handler: " + handler);
+				//mSipDialogHandlers.remove(handler);
+			}
+		}
 
 		// Incoming packet not handled by any module, we have to create new handler
 		SIPDialogHandler handler = new SIPDialogHandler(this, mConfig);
 
 		// Check if we have a valid SIP message
 		if(handler.handleOriginPacket(msgBuff, packet)) {
-			Logger.println("Adding new dialog handler: " + handler);
+			logMessage("Adding new dialog handler: " + handler);
 			mSipDialogHandlers.add(handler);
 		}
 		return true;
+		
+	}
+	
+	private void logMessage(String str) {
+		if(mLogger != null)
+			mLogger.println(SIPTunnel.class.getSimpleName().toString()+": "+str);
 	}
 
+	public Logger getLogger() {
+		return mLogger;
+	}
 }

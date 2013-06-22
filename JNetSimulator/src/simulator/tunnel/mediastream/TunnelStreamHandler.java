@@ -11,6 +11,8 @@ import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 public class TunnelStreamHandler implements IDispatcherHandler {
 
 	private IOPacketDispatcher mDispatcher;
+	
+	private Logger mLogger;
 
 	private DatagramPacket mOriginPacket;
 	private String mOriginIP;
@@ -31,7 +33,7 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 	private Object mLock = new Object();
 
 	public TunnelStreamHandler(IOPacketDispatcher dispatcher, 
-			DatagramPacket originPacket, TunnelStreamSettings settings) {
+			DatagramPacket originPacket, TunnelStreamSettings settings, Logger logger) {
 		mDispatcher = dispatcher;
 		mOriginInetAddress = originPacket.getAddress();
 		mOriginPort = originPacket.getPort();
@@ -42,6 +44,7 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 		mSettings = settings;
 
 		mIncomingPackets = new ArrayList<byte[]>();
+		mLogger = logger;
 	}
 
 	public DatagramPacket getOriginPacket(){
@@ -63,7 +66,6 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 		if(packet.getAddress().equals(mOriginInetAddress)
 				&& packet.getPort() == mOriginPort) {
 			synchronized(mLock) {
-//				Logger.println("Przyjalem pakiet od: "+packet.getAddress().toString()+", len: "+packet.getLength());
 				byte[] data = new byte[packet.getLength()];
 				System.arraycopy(packet.getData(), 0, data, 0, packet.getLength());
 				mIncomingPackets.add(data);
@@ -109,13 +111,13 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 		@Override
 		public void run() {
 			super.run();
-			Logger.println("Bede nakurwiac do: "+mDestAddress.toString()+":"+mDestPort);
+			logMessage("TunnelStreamWorker started, destination: "+mDestAddress.toString()+":"+mDestPort);
 			while(isRunning) {
 				try {
 					synchronized(mLock) {
 						if(mIncomingPackets.size() > 0) {
 							byte[] data = mIncomingPackets.get(0);
-//							Logger.println("Nakurwiam pakiet do: "+mOriginInetAddress.toString()+", len: "+data.length);
+//							logMessage("TunnelStreamWorker: Sending packet to: "+mOriginInetAddress.toString()+", len: "+data.length);
 							sendToDestination(data);
 							mIncomingPackets.remove(data);
 						} 
@@ -136,5 +138,10 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 	public boolean isOriginPacket(DatagramPacket packet) {
 		return (packet.getAddress().equals(mOriginInetAddress)
 				&& packet.getPort() == mOriginPort);
+	}
+	
+	private void logMessage(String str) {
+		if(mLogger != null)
+			mLogger.println(TunnelStreamHandler.class.getSimpleName().toString()+": "+str);
 	}
 }

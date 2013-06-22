@@ -15,23 +15,39 @@ public class TunnelStreamHolder {
 	
 	TunnelStreamSettings mSettings;
 	
-	public TunnelStreamHolder(int rtpPort, int rtcpPort, TunnelStreamSettings settings) {
+	private int byesReceived = 0;
+	
+	private Logger mLogger;
+	
+	private boolean isRunning;
+	
+	public TunnelStreamHolder(int rtpPort, int rtcpPort, TunnelStreamSettings settings, Logger logger) {
+		logMessage("Listening: \n   RTP port: "+rtpPort+"\n   RTCP: "+rtcpPort);
 		mRtpPort = rtpPort;
 		mRtCpPort = rtcpPort;
 		mSettings = settings;
+		mLogger = logger;
 	}
 	
 	public void startStreams(){
-		Logger.println("TunnelStreamHolder start streams");
-		mRTPStream = new TunnelStream(mRtpPort, mSettings);
+		if(isRunning) return;
+		
+		logMessage("Start streams");
+		
+		mRTPStream = new TunnelStream(mRtpPort, mSettings, mLogger);
 		mRTPStream.start();
 		
-		mRTCPStream = new TunnelStream(mRtCpPort, mSettings);
+		mRTCPStream = new TunnelStream(mRtCpPort, mSettings, mLogger);
 		mRTCPStream.start();
+		
+		isRunning = true;
 	}
 	
 	public void stopStreams(){
-		Logger.println("TunnelStreamHolder stop streams");
+		if(!isRunning) return;
+		
+		logMessage("Stop streams");
+		
 		if(mRTPStream != null) {
 			mRTPStream.stop();
 			mRTPStream = null;
@@ -41,15 +57,18 @@ public class TunnelStreamHolder {
 			mRTCPStream.stop();
 			mRTCPStream = null;
 		}
+		isRunning = false;
 	}
 	
 	public void addCallLeg(String legIP) {
 		if(hasFirstCallLegIP == null) {
 			hasFirstCallLegIP = legIP;
+			logMessage("First Call Leg added: "+legIP);
 			return;
 		}
 		if(hasSecondCallLegIP == null) {
 			hasSecondCallLegIP = legIP;
+			logMessage("Second Call Leg added: "+legIP);
 			return;
 		}
 	}
@@ -71,5 +90,10 @@ public class TunnelStreamHolder {
 
 	public int getRtpPort() {
 		return mRtpPort;
+	}
+	
+	private void logMessage(String str) {
+		if(mLogger != null)
+			mLogger.println(TunnelStreamHolder.class.getSimpleName().toString()+": "+str);
 	}
 }

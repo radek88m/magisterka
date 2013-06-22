@@ -2,6 +2,7 @@ package simulator.tunnel.mediastream;
 
 import java.net.DatagramPacket;
 
+import simulator.gui.logger.Logger;
 import simulator.tunnel.network.IOPacketDispatcher;
 import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 
@@ -14,16 +15,19 @@ public class TunnelStream implements IDispatcherHandler {
 	private TunnelStreamHandler mPartyA;
 	private TunnelStreamHandler mPartyB;
 	
+	private Logger mLogger;
+	
 	private boolean isRunning;
 	
-	public TunnelStream(int port, TunnelStreamSettings settings) {
+	public TunnelStream(int port, TunnelStreamSettings settings, Logger logger) {
 		mLocalPort = port;
 		mSettings = settings;
+		mLogger = logger;
 	}
 	
 	
 	public boolean start() {
-		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort, false);
+		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort, null);
 		mIOPacketDispatcher.registerHandler(this);
 		mIOPacketDispatcher.start();
 		
@@ -60,7 +64,7 @@ public class TunnelStream implements IDispatcherHandler {
 			DatagramPacket packet) {
 		
 		if(mPartyA == null) {
-			mPartyA = new TunnelStreamHandler(mIOPacketDispatcher, packet, mSettings);
+			mPartyA = new TunnelStreamHandler(mIOPacketDispatcher, packet, mSettings, mLogger);
 			return true;
 		} 
 		if (mPartyB == null) {
@@ -69,7 +73,7 @@ public class TunnelStream implements IDispatcherHandler {
 				return true;
 			}
 			
-			mPartyB = new TunnelStreamHandler(mIOPacketDispatcher, packet, mSettings);
+			mPartyB = new TunnelStreamHandler(mIOPacketDispatcher, packet, mSettings, mLogger);
 			
 			// Spiecie ze soba dwoch strumieni
 			mPartyB.acquireDestination(mPartyA.getOriginPacket());

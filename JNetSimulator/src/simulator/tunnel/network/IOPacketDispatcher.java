@@ -24,13 +24,13 @@ public class IOPacketDispatcher {
 	private UDPSocketAdapter mSocketAdapter;
 	private int mLocalPort;
 	
-	private boolean mTracePackets = false;
-	
 	private CopyOnWriteArrayList<IDispatcherHandler> mHandlers;
+
+	private Logger mLogger;
 		
-	public IOPacketDispatcher(int localPort, boolean trace) {
+	public IOPacketDispatcher(int localPort, Logger logger) {
 		mLocalPort = localPort;
-		mTracePackets = trace;
+		mLogger = logger;
 		mHandlers = new CopyOnWriteArrayList<IDispatcherHandler>();
 	}
 
@@ -74,10 +74,14 @@ public class IOPacketDispatcher {
 			return false;
 		}
 	}
+	
+	public void setLogger(Logger logger) {
+		mLogger = logger;
+	}
 
 	private void logPacket(String logMsg, DatagramPacket packet) {
-		if(mTracePackets)
-			Logger.println(logMsg + packet.getAddress() +":" 
+		if(mLogger != null)
+			mLogger.println(logMsg + packet.getAddress() +":" 
 					+ packet.getPort() +"("+packet.getLength()+ " bytes)\n" 
 						+ new String(packet.getData(), 0, packet.getLength()));
 	}

@@ -6,50 +6,65 @@ import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-
 public final class Logger {
 	
-	private static LoggerFrame sLoggerFrame;
+	public interface ILoggerPrinter {
+		void setPrinterTitle(String formatLog);
+		void addLog(String formatLog);
+		public void clearLogs();
+	}
 	
-	private static Executor sExecutor = Executors.newSingleThreadExecutor();
+	private ILoggerPrinter mLoggerOutput;	
+	private Executor mExecutor = Executors.newSingleThreadExecutor();
+	
+	public Logger(ILoggerPrinter output){
+		mLoggerOutput = output;
+	}
 	
 	public Logger(){
-		sLoggerFrame = new LoggerFrame();
-		sLoggerFrame.setDefaultCloseOperation(sLoggerFrame.EXIT_ON_CLOSE);
-		sLoggerFrame.setLocationRelativeTo(null);
-		sLoggerFrame.setVisible(true);
+		LoggerStandaloneFrame outputFrame = new LoggerStandaloneFrame();
+		outputFrame.setLocationRelativeTo(null);
+		outputFrame.setVisible(true);
+		mLoggerOutput = outputFrame;
 	}
 	
-	
-	public static synchronized void println(final String log) {
-		sExecutor.execute(new Runnable() {
+	public void println(final String log) {
+		if(mLoggerOutput == null) return;
+		mExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				sLoggerFrame.addLog(formatLog(log));				
+				mLoggerOutput.addLog(formatLog(log));				
 			}
 		});
 	}
 	
-	public static synchronized void println(final Object ob) {
-		sExecutor.execute(new Runnable() {			
+	public void println(final Object ob) {
+		if(mLoggerOutput == null) return;
+		mExecutor.execute(new Runnable() {			
 			@Override
 			public void run() {
-				sLoggerFrame.addLog(formatLog(ob.toString()));
+				mLoggerOutput.addLog(formatLog(ob.toString()));
 			}
 		});
 	}
 	
-	public static synchronized void println(final Throwable e) {
-		sExecutor.execute(new Runnable() {
+	public void println(final Throwable e) {
+		if(mLoggerOutput == null) return;
+		mExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				sLoggerFrame.addLog(formatLog(e.toString()));
+				mLoggerOutput.addLog(formatLog(e.toString()));
 				StackTraceElement[] stackTrace = e.getStackTrace();
 				for(StackTraceElement elem : stackTrace){
-					sLoggerFrame.addLog("\t"+elem.toString()+"\n");
+					mLoggerOutput.addLog("\t"+elem.toString()+"\n");
 				}				
 			}
 		});
+	}
+	
+	public void clearLogs() {
+		if(mLoggerOutput == null) return;
+		mLoggerOutput.clearLogs();
 	}
 	
 	private static String formatLog(String log) {

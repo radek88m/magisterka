@@ -77,7 +77,6 @@ public class UDPSocketAdapter {
 		private DatagramSocket mSocket;
 		private IUDPSocketAdapterListener mListener;
 		private boolean isRunning  = true;
-		private Object mLock = new Object();
 		
 		SocketOperationsThread(UDPSocketAdapter adapter, DatagramSocket socket, IUDPSocketAdapterListener listener) {
 			mUDPSocketAdapter = adapter;
