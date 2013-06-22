@@ -23,7 +23,7 @@ public class TunnelStream implements IDispatcherHandler {
 	
 	
 	public boolean start() {
-		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort);
+		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort, false);
 		mIOPacketDispatcher.registerHandler(this);
 		mIOPacketDispatcher.start();
 		

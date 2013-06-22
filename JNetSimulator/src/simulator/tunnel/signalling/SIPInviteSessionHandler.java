@@ -2,6 +2,7 @@ package simulator.tunnel.signalling;
 
 import simulator.tunnel.mediastream.TunnelStreamManager;
 import simulator.tunnel.network.UDPSocketInfo;
+import simulator.tunnel.signalling.SIPMessageScanner.SipMethod;
 
 public class SIPInviteSessionHandler {
 
@@ -33,7 +34,7 @@ public class SIPInviteSessionHandler {
 				if(!tunnelIP.equals(connIP)) {
 					UDPSocketInfo replacedInfo = new UDPSocketInfo(connIP, mediaPort);
 
-					int localMediaPort = mManager.onChangedSDPEvent(replacedInfo);
+					int localMediaPort = mManager.onChangedSDPEvent(diallogCallId);
 
 					String outMsg = sdp.replaceConnectionLine(mConfig.getLocalTunnelIPAddress());
 					outMsg = new SDPHelper(outMsg).replaceMediaPort(localMediaPort);
@@ -45,6 +46,11 @@ public class SIPInviteSessionHandler {
 					}
 					return outMsg;
 				}		
+			} else {
+				SIPMessageScanner scanner = new SIPMessageScanner(inputMsg);
+				if(scanner.isMethod(SipMethod.BYE)) {
+					mManager.onByeReceived(diallogCallId);
+				}
 			}
 		} catch (Exception e) {
 		}

@@ -21,9 +21,9 @@ public class TunnelStreamManager {
 	}
 	
 	
-	public int onChangedSDPEvent(UDPSocketInfo prev) {
+	public int onChangedSDPEvent(String transactionCallId) {
 		
-		String callLeg = prev.getAddress().toString().substring(1);
+		String callLeg = transactionCallId;
 		
 		TunnelStreamHolder streamHolder;
 		int mediaPort; 
@@ -72,9 +72,20 @@ public class TunnelStreamManager {
 		}
 		return null;
 	}
+	
 
+	public void onByeReceived(String diallogCallId) {
+		TunnelStreamHolder streamHolder;
+		if((streamHolder = handlerHasCallLeg(diallogCallId)) != null) {
+			streamHolder.stopStreams();
+			mTunnelMediaHolders.remove(streamHolder);
+		}
+		
+	}
 
 	public int requestPortNumber() {
 		return 0;
 	}
+
+
 }

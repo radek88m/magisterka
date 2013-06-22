@@ -19,6 +19,7 @@ public class SIPMessageScanner {
 	private static final String TO_HEADER_TAG = "To:";
 	private static final String FROM_HEADER_TAG = "From:";
 	private static final String CALL_ID_HEADER_TAG = "Call-ID:";
+	private static final String CSEQ_HEADER_TAG = "CSeq:";
 	
 	private static final String ROUTE_HEADER_TAG = "Route:";
 	private static final String RECORD_ROUTE_HEADER_TAG = "Record-Route:";
@@ -28,7 +29,8 @@ public class SIPMessageScanner {
 		CONTACT(CONTACT_HEADER_TAG),
 		TO(TO_HEADER_TAG),
 		FROM(FROM_HEADER_TAG),
-		CALL_ID("Call-ID:"),
+		CALL_ID(CALL_ID_HEADER_TAG),
+		CSEQ(CSEQ_HEADER_TAG),
 		METHOD("SIP/2.0") {
 			@Override
 			String parseHeaderValue(String inputBuff) {
@@ -108,15 +110,15 @@ public class SIPMessageScanner {
 		SUBSCRIBE("SUBSCRIBE"),
 		INVITE("INVITE"),
 		UPDATE("UPDATE"),
-		ACK("UPDATE"),
-		BYE("UPDATE"),
-		CANCEL("UPDATE"),
-		OPTIONS("UPDATE"),
-		PRACK("UPDATE"),
-		NOTIFY("UPDATE"),
-		PUBLISH("UPDATE"),
-		INFO("UPDATE"),
-		REFER("UPDATE"),
+		ACK("ACK"),
+		BYE("BYE"),
+		CANCEL("CANCEL"),
+		OPTIONS("OPTIONS"),
+		PRACK("PRACK"),
+		NOTIFY("NOTIFY"),
+		PUBLISH("PUBLISH"),
+		INFO("INFO"),
+		REFER("REFER"),
 		MESSAGE("MESSAGE");
 
 		String mMethodStr;
@@ -234,13 +236,7 @@ public class SIPMessageScanner {
 			SipHeader header = SipHeader.CONTACT;
 			String val = header.parseHeaderValue(mInputBuffer);
 			String userAddress;
-//			if(val.contains(OUTBOUND_PROXY_TAG)) {
-//				userAddress = val.substring(val.indexOf("@"), 
-//						val.indexOf(OUTBOUND_PROXY_TAG));
-//			} else {
-				userAddress = val.substring(val.indexOf("@")+1, val.indexOf(">"));
-//			}
-			
+			userAddress = val.substring(val.indexOf("@")+1, val.indexOf(">"));			
 			String replaceStr = localTunnelIPAddress+":"+localTunnelSipPort;
 			replaceStr = val.replace(userAddress, replaceStr);
 			return mInputBuffer.replace(val, replaceStr);
@@ -290,5 +286,12 @@ public class SIPMessageScanner {
 		} catch (Exception e) {
 		}
 		return mInputBuffer;
+	}
+
+	public boolean isByeResponse() {
+		SipHeader header = SipHeader.CSEQ;
+		String val = header.parseHeaderValue(mInputBuffer);
+		
+		return val.contains(SipMethod.BYE.mMethodStr);
 	}
 }

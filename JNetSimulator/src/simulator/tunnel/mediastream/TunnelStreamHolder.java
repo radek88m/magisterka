@@ -1,5 +1,7 @@
 package simulator.tunnel.mediastream;
 
+import simulator.logger.Logger;
+
 public class TunnelStreamHolder {
 
 	private int mRtpPort;
@@ -20,6 +22,7 @@ public class TunnelStreamHolder {
 	}
 	
 	public void startStreams(){
+		Logger.println("TunnelStreamHolder start streams");
 		mRTPStream = new TunnelStream(mRtpPort, mSettings);
 		mRTPStream.start();
 		
@@ -28,6 +31,7 @@ public class TunnelStreamHolder {
 	}
 	
 	public void stopStreams(){
+		Logger.println("TunnelStreamHolder stop streams");
 		if(mRTPStream != null) {
 			mRTPStream.stop();
 			mRTPStream = null;
