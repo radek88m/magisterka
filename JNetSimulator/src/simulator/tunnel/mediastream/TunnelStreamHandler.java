@@ -4,7 +4,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
-import simulator.logger.Logger;
+import simulator.gui.logger.Logger;
 import simulator.tunnel.network.IOPacketDispatcher;
 import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 

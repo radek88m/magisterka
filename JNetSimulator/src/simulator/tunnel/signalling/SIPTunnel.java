@@ -4,7 +4,7 @@ import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import simulator.logger.Logger;
+import simulator.gui.logger.Logger;
 import simulator.tunnel.mediastream.TunnelStreamManager;
 import simulator.tunnel.network.IOPacketDispatcher;
 import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
@@ -21,6 +21,8 @@ public class SIPTunnel implements IDispatcherHandler{
 	private ArrayList<ISIPIncomingMessageHandler> mSipDialogHandlers;
 
 	private SIPUsersMap mUsersMap;
+	
+	private boolean isRunning;
 
 	public SIPTunnel(SIPTunnelConfig config) {
 		mConfig = config;
@@ -36,6 +38,7 @@ public class SIPTunnel implements IDispatcherHandler{
 		mIOPacketDispatcher = new IOPacketDispatcher(mLocalPort, true);
 		mIOPacketDispatcher.registerHandler(this);
 		mIOPacketDispatcher.start();
+		isRunning = true;
 		return true;
 	}
 
@@ -43,7 +46,12 @@ public class SIPTunnel implements IDispatcherHandler{
 		mIOPacketDispatcher.unregisterHandler(this);
 		mIOPacketDispatcher.stop();
 		mIOPacketDispatcher = null;
+		isRunning = false;
 		return true;
+	}
+	
+	public boolean isRunning() {
+		return isRunning;
 	}
 
 	public boolean sendPacket(DatagramPacket packet) {	

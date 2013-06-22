@@ -1,6 +1,6 @@
 package simulator.tunnel.mediastream;
 
-import simulator.logger.Logger;
+import simulator.gui.logger.Logger;
 
 public class TunnelStreamHolder {
 

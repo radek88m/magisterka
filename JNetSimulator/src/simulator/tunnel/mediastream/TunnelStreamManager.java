@@ -2,7 +2,7 @@ package simulator.tunnel.mediastream;
 
 import java.util.ArrayList;
 
-import simulator.logger.Logger;
+import simulator.gui.logger.Logger;
 import simulator.tunnel.network.UDPSocketInfo;
 import simulator.tunnel.signalling.SIPTunnelConfig;
 

@@ -1,10 +1,11 @@
-package simulator.logger;
+package simulator.gui.logger;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
 
 public final class Logger {
 	

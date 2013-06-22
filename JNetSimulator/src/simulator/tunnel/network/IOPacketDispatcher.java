@@ -3,7 +3,7 @@ package simulator.tunnel.network;
 import java.net.DatagramPacket;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import simulator.logger.Logger;
+import simulator.gui.logger.Logger;
 import simulator.tunnel.network.UDPSocketAdapter.IUDPSocketAdapterListener;
 
 public class IOPacketDispatcher {

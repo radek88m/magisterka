@@ -4,7 +4,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import simulator.logger.Logger;
+import simulator.gui.logger.Logger;
 import simulator.tunnel.mediastream.dummy.audio.AudioCodecMode;
 import simulator.tunnel.network.UDPSocketAdapter;
 import simulator.tunnel.network.UDPSocketAdapter.IUDPSocketAdapterListener;

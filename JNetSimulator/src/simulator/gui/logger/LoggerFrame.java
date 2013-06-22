@@ -1,4 +1,4 @@
-package simulator.logger;
+package simulator.gui.logger;
 
 import java.awt.Color;
 import java.awt.Dimension;
