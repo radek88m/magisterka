@@ -12,7 +12,7 @@ public class LoggerStandaloneFrame extends JFrame implements ILoggerPrinter {
 	
 	public LoggerStandaloneFrame() {
 
-		this.setSize(new Dimension(550, 600));
+		this.setSize(new Dimension(700, 600));
 		mLogPanel = new LogPanel();
 		this.add(mLogPanel);
 	}

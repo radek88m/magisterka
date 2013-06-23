@@ -11,7 +11,7 @@ import simulator.tunnel.network.IOPacketDispatcher.IDispatcherHandler;
 public class TunnelStreamHandler implements IDispatcherHandler {
 
 	private IOPacketDispatcher mDispatcher;
-	
+
 	private Logger mLogger;
 
 	private DatagramPacket mOriginPacket;
@@ -27,9 +27,9 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 
 	private TunnelStreamSettings mSettings;
 
-	private TunnelStreamWorker mTunnelStreamWorker;
+	private TunnelStreamManipulator mTunnelStreamManipulator;
 
-	private ArrayList<byte[]> mIncomingPackets;
+	private ArrayList<MediaPacket> mIncomingPackets;
 	private Object mLock = new Object();
 
 	public TunnelStreamHandler(IOPacketDispatcher dispatcher, 
@@ -43,7 +43,7 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 
 		mSettings = settings;
 
-		mIncomingPackets = new ArrayList<byte[]>();
+		mIncomingPackets = new ArrayList<MediaPacket>();
 		mLogger = logger;
 	}
 
@@ -66,9 +66,9 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 		if(packet.getAddress().equals(mOriginInetAddress)
 				&& packet.getPort() == mOriginPort) {
 			synchronized(mLock) {
-				byte[] data = new byte[packet.getLength()];
-				System.arraycopy(packet.getData(), 0, data, 0, packet.getLength());
-				mIncomingPackets.add(data);
+				MediaPacket mediaPacket = new MediaPacket(packet,
+						System.currentTimeMillis());
+				mIncomingPackets.add(mediaPacket);
 			}
 			return true;
 		} else {
@@ -78,19 +78,32 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 
 	public boolean startProcessing() {
 		mDispatcher.registerHandler(this);
-		mTunnelStreamWorker = new TunnelStreamWorker();
-		mTunnelStreamWorker.start();
+		mTunnelStreamManipulator = new TunnelStreamManipulator(this, mSettings);
+		mTunnelStreamManipulator.start();
+		logMessage("TunnelStreamManipulator started, destination: "+mDestAddress.toString()+":"+mDestPort);
 		return true;
 	}
 
 	public boolean stopProcessing() {
 		mDispatcher.unregisterHandler(this);
-		mTunnelStreamWorker.stopRunning();
-		mTunnelStreamWorker = null;
+		mTunnelStreamManipulator.stopRunning();
+		mTunnelStreamManipulator = null;
+		logMessage("TunnelStreamManipulator stopped, destination: "+mDestAddress.toString()+":"+mDestPort);
 		return true;
 	}
 
-	private void sendToDestination(byte[] data) {
+	public MediaPacket requestPacketFromQueue() {
+		synchronized(mLock) {
+			if(mIncomingPackets.size() > 0) {
+				MediaPacket mediaPacket = mIncomingPackets.get(0);
+				mIncomingPackets.remove(mediaPacket);
+				return mediaPacket;
+			} 
+		}
+		return null;
+	}
+
+	public void sendToDestination(byte[] data) {
 		if(!hasDestination) return;
 		DatagramPacket packet = new DatagramPacket(data, 
 				data.length, mDestAddress, mDestPort);
@@ -104,42 +117,11 @@ public class TunnelStreamHandler implements IDispatcherHandler {
 		return string;
 	}
 
-	private class TunnelStreamWorker extends Thread {
-
-		private boolean isRunning = true;
-
-		@Override
-		public void run() {
-			super.run();
-			logMessage("TunnelStreamWorker started, destination: "+mDestAddress.toString()+":"+mDestPort);
-			while(isRunning) {
-				try {
-					synchronized(mLock) {
-						if(mIncomingPackets.size() > 0) {
-							byte[] data = mIncomingPackets.get(0);
-//							logMessage("TunnelStreamWorker: Sending packet to: "+mOriginInetAddress.toString()+", len: "+data.length);
-							sendToDestination(data);
-							mIncomingPackets.remove(data);
-						} 
-					}
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		public void stopRunning() {
-			isRunning = false;
-		}
-
-	}
-
 	public boolean isOriginPacket(DatagramPacket packet) {
 		return (packet.getAddress().equals(mOriginInetAddress)
 				&& packet.getPort() == mOriginPort);
 	}
-	
+
 	private void logMessage(String str) {
 		if(mLogger != null)
 			mLogger.println(TunnelStreamHandler.class.getSimpleName().toString()+": "+str);
