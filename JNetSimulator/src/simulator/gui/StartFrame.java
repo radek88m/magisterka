@@ -26,7 +26,7 @@ public class StartFrame extends JFrame {
 	private JButton btnStart;
 	
 	public StartFrame() {
-		setTitle("SIP Media Proxy Simulator");
+		setTitle("SIP Proxy Simulator");
 		
 		this.setSize(new Dimension(400, 235));
 		
@@ -69,10 +69,10 @@ public class StartFrame extends JFrame {
 							.addPreferredGap(ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
 							.addComponent(sipServerTextField, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
-							.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-								.addComponent(lblLocalMediaPort, GroupLayout.PREFERRED_SIZE, 125, Short.MAX_VALUE)
-								.addComponent(lblLocalSipListener, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-							.addPreferredGap(ComponentPlacement.UNRELATED)
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+								.addComponent(lblLocalSipListener, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(lblLocalMediaPort))
+							.addPreferredGap(ComponentPlacement.RELATED)
 							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
 								.addComponent(localSipPortTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
 								.addComponent(portRangeTextField, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)

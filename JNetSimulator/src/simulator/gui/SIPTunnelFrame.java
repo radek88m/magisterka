@@ -124,7 +124,7 @@ public class SIPTunnelFrame extends JFrame {
 	private void initializeViews() {
 		getContentPane().setLayout(null);
 		
-		setTitle("SIP Media Proxy Simulator");
+		setTitle("SIP Proxy Simulator");
 		this.setSize(new Dimension(900, 640));
 		
 		JCheckBox sipMessagesLoggingCheckBox = new JCheckBox("SIP Messages Logging");
